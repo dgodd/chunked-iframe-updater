@@ -3,9 +3,11 @@ package main
 import (
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"time"
+	"github.com/coreos/go-systemd/activation"
 )
 
 func main() {
@@ -49,6 +51,15 @@ func main() {
 	})
 
 	// listen and serve using `ServeMux`
-	http.ListenAndServe(":9000", mux)
+	// http.ListenAndServe(":9000", mux)
 
+	listeners, err := activation.Listeners()
+	if err != nil {
+		log.Panicf("cannot retrieve listeners: %s", err)
+	}
+	if len(listeners) != 1 {
+		log.Panicf("unexpected number of socket activation (%d != 1)",
+		len(listeners))
+	}
+	http.Serve(listeners[0], mux)
 }
